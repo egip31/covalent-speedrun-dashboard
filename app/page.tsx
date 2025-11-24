@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import React from "react";
@@ -31,7 +30,7 @@ type Tx = {
   valueUsd: string;
 };
 
-const wallets: Wallet[] = [
+const defaultWallets: Wallet[] = [
   {
     id: "main",
     label: "Main Farming",
@@ -60,22 +59,22 @@ const summaryCards: SummaryCard[] = [
   {
     label: "Total Portfolio",
     value: "$12,450.32",
-    sublabel: "All wallets · All chains",
+    sublabel: "All wallets · All chains (dummy)",
   },
   {
     label: "24h Volume",
     value: "$3,210.77",
-    sublabel: "IN + OUT across chains",
+    sublabel: "IN + OUT across chains (dummy)",
   },
   {
     label: "Net Flow 24h",
     value: "+$820.15",
-    sublabel: "More in than out",
+    sublabel: "More in than out (dummy)",
   },
   {
     label: "New Assets (7d)",
     value: "4",
-    sublabel: "Potential airdrops / rewards",
+    sublabel: "Potential airdrops / rewards (dummy)",
   },
 ];
 
@@ -119,8 +118,33 @@ const recentTx: Tx[] = [
 ];
 
 export default function DashboardPage() {
-  const [selectedWallet, setSelectedWallet] = React.useState<Wallet>(wallets[0]);
+  // state wallet & chain
+  const [wallets, setWallets] = React.useState<Wallet[]>(defaultWallets);
+  const [selectedWallet, setSelectedWallet] = React.useState<Wallet>(
+    defaultWallets[0],
+  );
   const [selectedChain, setSelectedChain] = React.useState<Chain | null>(null);
+
+  // state form add wallet
+  const [showAddWallet, setShowAddWallet] = React.useState(false);
+  const [newWalletLabel, setNewWalletLabel] = React.useState("");
+  const [newWalletAddress, setNewWalletAddress] = React.useState("");
+
+  const handleAddWallet = () => {
+    if (!newWalletLabel.trim() || !newWalletAddress.trim()) return;
+
+    const newWallet: Wallet = {
+      id: `${Date.now()}`,
+      label: newWalletLabel.trim(),
+      address: newWalletAddress.trim(),
+    };
+
+    setWallets((prev) => [...prev, newWallet]);
+    setSelectedWallet(newWallet);
+    setNewWalletLabel("");
+    setNewWalletAddress("");
+    setShowAddWallet(false);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 flex">
@@ -138,11 +162,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-slate-500">
-          Wallets
+        <div className="px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-slate-500 flex items-center justify-between">
+          <span>Wallets</span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
           {wallets.map((w) => (
             <button
               key={w.id}
@@ -167,11 +191,58 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div className="px-4 py-3 border-t border-slate-800 text-[11px] text-slate-500">
-          <div className="flex items-center justify-between">
+        {/* Add wallet form di bawah sidebar */}
+        <div className="px-3 pb-3 space-y-2 border-t border-slate-800 pt-3">
+          {showAddWallet ? (
+            <div className="rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2 space-y-2">
+              <div className="text-[11px] text-slate-400">
+                Add new wallet (label + address)
+              </div>
+              <input
+                className="w-full rounded-md bg-slate-900 border border-slate-700 px-2 py-1 text-[11px] outline-none focus:border-sky-500"
+                placeholder="Label, ex: Capx Farming"
+                value={newWalletLabel}
+                onChange={(e) => setNewWalletLabel(e.target.value)}
+              />
+              <input
+                className="w-full rounded-md bg-slate-900 border border-slate-700 px-2 py-1 text-[11px] outline-none font-mono focus:border-sky-500"
+                placeholder="0x... wallet address"
+                value={newWalletAddress}
+                onChange={(e) => setNewWalletAddress(e.target.value)}
+              />
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    setShowAddWallet(false);
+                    setNewWalletLabel("");
+                    setNewWalletAddress("");
+                  }}
+                  className="text-[10px] px-2 py-1 rounded-full border border-slate-700 text-slate-400 hover:bg-slate-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddWallet}
+                  className="text-[10px] px-3 py-1 rounded-full bg-sky-500 text-slate-950 font-semibold hover:bg-sky-400"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAddWallet(true)}
+              className="w-full text-[11px] rounded-xl border border-slate-700 px-3 py-2 flex items-center justify-center gap-1 text-slate-200 hover:bg-slate-900"
+            >
+              <span className="text-sky-400 text-lg leading-none">＋</span>
+              <span>Add wallet</span>
+            </button>
+          )}
+
+          <div className="text-[10px] text-slate-500 flex items-center justify-between">
             <span>Mode</span>
             <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px]">
-              Live · Demo
+              Online UI · Data dummy
             </span>
           </div>
         </div>
@@ -190,6 +261,9 @@ export default function DashboardPage() {
                   {selectedChain.name}
                 </span>
               )}
+            </div>
+            <div className="text-[11px] text-slate-500 font-mono truncate max-w-md">
+              {selectedWallet.address}
             </div>
           </div>
 
@@ -214,10 +288,6 @@ export default function DashboardPage() {
                 </button>
               ))}
             </div>
-
-            <button className="text-[11px] rounded-full border border-slate-700 px-3 py-1 hover:bg-slate-900/70">
-              + Add wallet
-            </button>
           </div>
         </header>
 
@@ -274,7 +344,6 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="mt-3 h-44 rounded-xl border border-dashed border-slate-700/70 flex items-center justify-center text-xs text-slate-500">
-                {/* nanti diisi Recharts */}
                 Chart area – soon we plug real volume data here.
               </div>
             </div>
@@ -285,7 +354,7 @@ export default function DashboardPage() {
                 New assets / Airdrop radar
               </div>
               <div className="mt-2 text-sm text-slate-100">
-                4 new assets detected in the last 7d.
+                4 new assets detected in the last 7d. (dummy)
               </div>
               <ul className="mt-3 space-y-2 text-[11px] text-slate-200">
                 <li className="flex justify-between">
